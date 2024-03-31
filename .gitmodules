@@ -1,0 +1,3 @@
+[submodule "loongarchlinux-dockerfile"]
+	path = loongarchlinux-dockerfile
+	url = https://github.com/lcpu-club/loongarchlinux-dockerfile.git
