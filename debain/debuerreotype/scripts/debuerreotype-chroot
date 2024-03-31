@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+thisDir="$(dirname "$(readlink -vf "$BASH_SOURCE")")"
+source "$thisDir/.constants.sh" \
+	'<target-dir> <command> [args...]' \
+	'rootfs apt-get update'
+
+eval "$dgetopt"
+while true; do
+	flag="$1"; shift
+	dgetopt-case "$flag"
+	case "$flag" in
+		--) break ;;
+		*) eusage "unknown flag '$flag'" ;;
+	esac
+done
+
+targetDir="${1:-}"; shift || eusage 'missing target-dir'
+cmd="${1:-}"; shift || eusage 'missing command'
+[ -n "$targetDir" ]
+epoch="$(< "$targetDir/debuerreotype-epoch")"
+[ -n "$epoch" ]
+
+export targetDir epoch
+unshare --mount bash -Eeuo pipefail -c '
+	[ -n "$targetDir" ] # just to be safe
+	for dir in dev proc sys; do
+		if [ -d "$targetDir/$dir" ]; then
+			# --debian-eol woody and below have no /sys
+			mount --rbind "/$dir" "$targetDir/$dir"
+		fi
+	done
+	if [ -f "$targetDir/etc/resolv.conf" ]; then
+		mount --rbind --read-only /etc/resolv.conf "$targetDir/etc/resolv.conf"
+	fi
+	exec chroot "$targetDir" /usr/bin/env -i \
+		PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+		TZ="$TZ" \
+		LC_ALL="$LC_ALL" \
+		${http_proxy:+http_proxy="$http_proxy"} \
+		${DEBIAN_FRONTEND:+DEBIAN_FRONTEND="$DEBIAN_FRONTEND"} \
+		SOURCE_DATE_EPOCH="$epoch" \
+		"$@"
+' -- "$cmd" "$@"

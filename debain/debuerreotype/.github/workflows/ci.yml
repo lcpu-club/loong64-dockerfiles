@@ -1,0 +1,84 @@
+name: GitHub CI
+
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: 0 0 * * 0
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: 'bash -Eeuo pipefail -x {0}'
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  https:
+    name: Ensure no-TLS snapshot usage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Ensure http://snapshot.debian.org (https://github.com/debuerreotype/debuerreotype/pull/119#issuecomment-901457009)
+        run: |
+          rm .github/workflows/ci.yml # this file itself will always be a match, but it's the only valid one 👀
+          if grep -rn 'https://snapshot.debian.org'; then
+            exit 1
+          fi
+
+  test:
+    strategy:
+      matrix:
+        include:
+          - { SUITE: stable,    CODENAME: jessie,  TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: 2dfa65652d6666e1f496886a2a9b3852bd43c1df55babe7009e8dbfe4a66ba69 }
+          - { SUITE: jessie,    CODENAME: "",      TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: 2dfa65652d6666e1f496886a2a9b3852bd43c1df55babe7009e8dbfe4a66ba69 }
+          - { SUITE: testing,   CODENAME: stretch, TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: f6a94df0a2eccdec7cabf576e009b639f6d011c7db62744cbc9f11b4067b5568 }
+          - { SUITE: stretch,   CODENAME: "",      TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: f6a94df0a2eccdec7cabf576e009b639f6d011c7db62744cbc9f11b4067b5568 }
+          - { SUITE: unstable,  CODENAME: sid,     TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: 87f46eeb98d44ff5742d87112d9cc45e51dbb1204d60cb4136b51f0edfce061f }
+          - { SUITE: sid,       CODENAME: "",      TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: 87f46eeb98d44ff5742d87112d9cc45e51dbb1204d60cb4136b51f0edfce061f }
+          - { SUITE: oldstable, CODENAME: wheezy,  TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: d19b91beb77aa6d32dbf45681a8510916d70ec74d2f499ee5559fc96ada025a1 }
+          - { SUITE: wheezy,    CODENAME: "",      TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: d19b91beb77aa6d32dbf45681a8510916d70ec74d2f499ee5559fc96ada025a1 }
+
+          # EOL suites testing
+          - { SUITE: eol, CODENAME: etch,  TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: 893d436a060f2536f70efbdfd2e2952cf311eada558f858e6190c80b323b783e }
+          - { SUITE: eol, CODENAME: lenny, TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: c263084bc482b1538512eb091095dd30cf55a6873b989aeee9d4e148f2f3fafa }
+          - { SUITE: eol, CODENAME: woody, ARCH: i386, TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: f80833896e141fbfebf8c91e79da2ccca1bdeb8f8ecc4e05dd33531c32857e0f }
+          - { SUITE: eol, CODENAME: jessie, TIMESTAMP: "2021-03-01T00:00:00Z", SHA256: 45c5553e989a8d42106029ec6f5e042bf48b29e08bf50e414f99f04c33b10fe9 }
+
+          # deb822 / usr-is-merged testing
+          - { SUITE: unstable, CODENAME: "", TIMESTAMP: "2022-09-30T00:00:00Z", SHA256: 03a0c528782513e6d00a4f0e4d6137d5eb308e1b7544e2230d86626861086f1a }
+          - { SUITE: bookworm, CODENAME: "", TIMESTAMP: "2022-09-30T00:00:00Z", SHA256: 8b350357e65dc02f04774c56d4b39b232ba53746a132496a211d3152287f7db2 }
+          - { SUITE: bullseye, CODENAME: "", TIMESTAMP: "2022-09-30T00:00:00Z", SHA256: cd39823e09ebc57cc3e6d4d57faa24ea6ddfab60f0519165a26f101ea94f13a0 }
+
+          # qemu-debootstrap testing
+          - { ARCH: arm64,   SUITE: jessie,   CODENAME: "", TIMESTAMP: "2017-01-01T00:00:00Z", SHA256: 45b3c398b472ff45399cc6cc633005f48d2359d0df8d905022d37a29434420cf }
+          - { ARCH: sh4,     SUITE: unstable, CODENAME: "", TIMESTAMP: "2022-02-01T00:00:00Z", SHA256: 8cf5ac04cd174465aff38484b0cd1b5ad83fe14585322f99a7db404b6dc02275 }
+          - { ARCH: riscv64, SUITE: unstable, CODENAME: "", TIMESTAMP: "2022-02-01T00:00:00Z", SHA256: 3f0d1dc0cb525aa47e6d9947fa7d6e207f7fd72a1d023872a874d6202e020232 }
+
+          # a few entries for "today" to try and catch issues like https://github.com/debuerreotype/debuerreotype/issues/41 sooner
+          - { SUITE: unstable,  CODENAME: "", TIMESTAMP: "today 00:00:00", SHA256: "" }
+          - { SUITE: stable,    CODENAME: "", TIMESTAMP: "today 00:00:00", SHA256: "" }
+          - { SUITE: oldstable, CODENAME: "", TIMESTAMP: "today 00:00:00", SHA256: "" }
+
+          - { DISTRO: ubuntu, SUITE: bionic }
+          - { DISTRO: ubuntu, SUITE: focal }
+      fail-fast: false
+    name: Test ${{ matrix.DISTRO && format('{0} ', matrix.DISTRO) }}${{ matrix.SUITE }}${{ matrix.CODENAME && format(' ({0})', matrix.CODENAME) }}${{ matrix.ARCH && format(' [{0}]', matrix.ARCH) }}${{ matrix.TIMESTAMP && format(' at {0}', matrix.TIMESTAMP) }}
+    runs-on: ubuntu-20.04
+    env: ${{ matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare Environment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -yqq binfmt-support qemu-user-static
+          docker run -d --name squignix --restart always tianon/squignix
+          git clone --depth 1 https://github.com/tianon/pgp-happy-eyeballs.git ~/phe
+          ~/phe/hack-my-builds.sh
+          rm -rf ~/phe
+      - name: Build
+        run: |
+          "./.validate-${DISTRO:-debian}.sh"
