@@ -1,0 +1,10 @@
+--- debootstrap	2024-03-31 18:51:01.005098238 +0800
++++ debootstrap-patch	2024-03-31 18:51:52.228335726 +0800
+@@ -554,6 +554,7 @@
+ 		x86_64)  HOST_ARCH=amd64 ;;
+ 		armv7h)  HOST_ARCH=armhf ;;
+ 		aarch64) HOST_ARCH=arm64 ;;
++		loong64) HOST_ARCH=loong64 ;;
+ 		*) echo "Unknown architecture: $CARCH" && exit 1
+ 	esac
+ fi
