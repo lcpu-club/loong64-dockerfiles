@@ -25,3 +25,12 @@ sudo patch /usr/bin/debootstrap ./debootstrap-loong64.patch
 sudo ./debuerreotype/examples/debian.sh --ports --codename-copy --arch loong64  ./debian-loong64 sid 2024-03-30T08:40:14Z
 
 echo "Build debian-loong64 successfully, see debian-loong64/rootfs.tar.xz for the result."
+
+# if argument is given, the second argument is the image tag
+if [ $# -eq 1 ]; then
+    echo "Importing image $1..."
+    cat debian-loong64/*/loon64/sid/rootfs.tar.xz | docker import - $1
+    echo "Imported image $1 successfully."
+    cat debian-loong64/*/loon64/sid/slim/rootfs.tar.xz | docker import - $1-slim
+    echo "Imported image $1-slim successfully."
+fi
