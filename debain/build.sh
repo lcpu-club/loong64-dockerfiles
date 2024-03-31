@@ -29,8 +29,8 @@ echo "Build debian-loong64 successfully, see debian-loong64/rootfs.tar.xz for th
 # if argument is given, the second argument is the image tag
 if [ $# -eq 1 ]; then
     echo "Importing image $1..."
-    cat debian-loong64/*/loon64/sid/rootfs.tar.xz | docker import - $1
+    cat debian-loong64/*/loong64/sid/rootfs.tar.xz | docker import - $1
     echo "Imported image $1 successfully."
-    cat debian-loong64/*/loon64/sid/slim/rootfs.tar.xz | docker import - $1-slim
+    cat debian-loong64/*/loong64/sid/slim/rootfs.tar.xz | docker import - $1-slim
     echo "Imported image $1-slim successfully."
 fi
