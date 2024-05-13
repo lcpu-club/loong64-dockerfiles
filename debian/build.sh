@@ -22,7 +22,7 @@ fi
 sudo patch /usr/bin/debootstrap ./debootstrap-loong64.patch
 
 # Build debian-loong64
-sudo ./debuerreotype/examples/debian.sh --ports --codename-copy --arch loong64  ./debian-loong64 sid 2024-03-30T08:40:14Z
+sudo ./debuerreotype/examples/debian.sh --ports --codename-copy --arch loong64 --include gpg ./debian-loong64 sid 2024-03-30T08:40:14Z
 
 echo "Build debian-loong64 successfully, see debian-loong64/rootfs.tar.xz for the result."
 
