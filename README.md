@@ -2,6 +2,17 @@
 
 Dockerfiles for LoongArch (new-world).
 
+## How to run loong64 containers on x86 platform
+
+We maintain a `qemu-user-static` container, which will act as the simulator. Follow the instructions below:
+
+```bash
+# Register qemu-user-static 
+docker run --rm --privileged loongcr.lcpu.dev/multiarch/archlinux --reset -p yes
+# Run loong64 containers
+docker run --rm -it --name ttt loongcr.lcpu.dev/lcpu/debian:unstable-240513 bash
+```
+
 ## How to contribute
 You can add your own Dockerfiles to this repo by submitting a PR:
 
@@ -24,6 +35,17 @@ You can add your own Dockerfiles to this repo by submitting a PR:
 # 中文说明
 
 这个仓库收集 LoongArch 新世界的 Dockerfile。大部分用户可以直接使用这些 Dockerfile 来构建镜像。
+
+## 怎么在 x86 平台上运行 loong64 架构的容器
+
+我们维护了 `qemu-user-static` 容器，可以用 `qemu` 模拟运行 `loong64` 架构的程序。具体脚本如下：
+
+```
+# 使用我们维护的 qemu-user-static
+docker run --rm --privileged loongcr.lcpu.dev/multiarch/archlinux --reset -p yes
+# 运行 loong64 容器
+docker run --rm -it --name ttt loongcr.lcpu.dev/lcpu/debian:unstable-240513 bash
+```
 
 ## 如何贡献
 
