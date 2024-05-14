@@ -10,7 +10,7 @@ We maintain a `qemu-user-static` container, which will act as the simulator. Fol
 # Register qemu-user-static 
 docker run --rm --privileged loongcr.lcpu.dev/multiarch/archlinux --reset -p yes
 # Run loong64 containers
-docker run --rm -it --name ttt loongcr.lcpu.dev/lcpu/debian:unstable-240513 bash
+docker run --rm -it --name hello loongcr.lcpu.dev/lcpu/debian:unstable-240513 bash
 ```
 
 ## How to contribute
@@ -44,7 +44,7 @@ You can add your own Dockerfiles to this repo by submitting a PR:
 # 使用我们维护的 qemu-user-static
 docker run --rm --privileged loongcr.lcpu.dev/multiarch/archlinux --reset -p yes
 # 运行 loong64 容器
-docker run --rm -it --name ttt loongcr.lcpu.dev/lcpu/debian:unstable-240513 bash
+docker run --rm -it --name hello loongcr.lcpu.dev/lcpu/debian:unstable-240513 bash
 ```
 
 ## 如何贡献
